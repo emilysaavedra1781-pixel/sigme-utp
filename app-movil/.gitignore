@@ -1,0 +1,46 @@
+# dependencies
+node_modules/
+.sf
+
+# env (nunca subir)
+.env
+.env*.local
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.pem
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders
+/ios
+/android
+
+# herramientas locales (opcional)
+.claude/
+.sf/
+CLAUDE.md
