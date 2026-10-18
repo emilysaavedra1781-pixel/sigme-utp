@@ -51,14 +51,25 @@ export async function obtener(userId: number, id: number) {
 }
 
 export async function actualizar(userId: number, id: number, d: ActualizarDatos) {
+  // Distingue "omitido" (mantener el valor) de "null/cadena vacía explícita"
+  // (limpiar el valor). Los booleanos indican si el campo venía en el cuerpo.
+  const setPlaca = d.placa !== undefined;
+  const setMarca = d.marca !== undefined;
+  const setModelo = d.modelo !== undefined;
+
   const { rows } = await pool.query(
     `UPDATE vehicles
-     SET placa  = COALESCE($1, placa),
-         marca  = COALESCE($2, marca),
-         modelo = COALESCE($3, modelo)
-     WHERE id = $4 AND user_id = $5
+     SET placa  = CASE WHEN $1 THEN $2 ELSE placa END,
+         marca  = CASE WHEN $3 THEN $4 ELSE marca END,
+         modelo = CASE WHEN $5 THEN $6 ELSE modelo END
+     WHERE id = $7 AND user_id = $8
      RETURNING ${CAMPOS}`,
-    [d.placa ?? null, d.marca || null, d.modelo || null, id, userId],
+    [
+      setPlaca, d.placa ?? null,
+      setMarca, d.marca || null,
+      setModelo, d.modelo || null,
+      id, userId,
+    ],
   );
   if (!rows[0]) {
     await advertirAccesoAjeno("vehicles.update_forbidden", userId, id);

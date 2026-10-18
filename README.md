@@ -131,6 +131,7 @@ Si cambias una ruta o un campo de respuesta, avisa al otro equipo.
 | `DELETE` | `/vehicles/:id` | Bearer | Eliminar un vehículo propio. → 200 / 400 / 404 |
 
 - **Placas:** formato alineado con la app móvil (`/^[A-Z0-9]{3}-?[A-Z0-9]{3,4}$/i`), normalizadas a mayúsculas sin guion. Placa duplicada → `409`.
+- **Actualización parcial:** los campos omitidos se conservan; `marca` y `modelo` admiten `null` (o cadena vacía) para limpiar el valor.
 - **Autorización:** el propietario se obtiene del JWT (`req.user.id`); un usuario nunca ve/modifica/elimina vehículos ajenos (se responde `404` para no revelar su existencia). Los tres roles (`usuario`, `supervisor`, `administrador`) gestionan solo sus propios vehículos.
 - **Auditoría:** crear, actualizar y eliminar registran en `audit_log` (best-effort; `accion = vehicles.create|update|delete`, `elemento = vehicles:<id>`).
 - **Logs:** `info` en operaciones exitosas, `warn` en accesos ajenos, `error` en fallos inesperados.
@@ -146,7 +147,7 @@ cd backend
 npm install
 # crear .env (ver abajo)
 npm run dev          # http://localhost:3000/health
-npm test             # 27 pruebas unitarias/HTTP con pool mockeado (node:test)
+npm test             # 29 pruebas unitarias/HTTP con pool mockeado (node:test)
 npm run typecheck    # comprobación de tipos de src y test
 npm run build        # compila TypeScript
 ```
@@ -190,7 +191,7 @@ npx expo start -c
 ### Hecho
 - [x] Backend: estructura completa, config, logger con `traceId`, pool
 - [x] Backend: módulo `auth` (registro, login, logout con revocación), middlewares y auditoría
-- [x] Backend: módulo `vehicles` (CRUD con autorización por propietario, auditoría, logs y 27 tests con `node:test`)
+- [x] Backend: módulo `vehicles` (CRUD con autorización por propietario, auditoría, logs y 29 tests con `node:test`)
 - [x] App: login conectado, token en `expo-secure-store`
 - [x] App: 3 pantallas de registro con validaciones locales, menú, notificaciones, historial
 
@@ -201,7 +202,7 @@ npx expo start -c
 4. [ ] Módulos: parking, reservations (transacción con `FOR UPDATE`), access, notifications, admin, users
 5. [ ] WebSocket para plazas en tiempo real
 6. [ ] Validación de entrada en los `*.schema.ts`
-7. [ ] Pruebas de los demás módulos (vehicles ya cubierto con `node:test`, 27 tests incluyendo los 3 roles)
+7. [ ] Pruebas de los demás módulos (vehicles ya cubierto con `node:test`, 29 tests incluyendo los 3 roles)
 8. [ ] Dockerfile y `.env.example`
 9. [ ] Desplegar en Render y retirar `auth-service` y `api-gateway`
 

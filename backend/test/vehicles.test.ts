@@ -124,22 +124,27 @@ async function fakeQuery(sql: string, params: unknown[] = []): Promise<QueryResu
   }
 
   if (sql.includes("UPDATE vehicles")) {
-    const [placa, marca, modelo, id, userId] = params as [
+    const [setPlaca, placa, setMarca, marca, setModelo, modelo, id, userId] = params as [
+      boolean,
       string | null,
+      boolean,
       string | null,
+      boolean,
       string | null,
       number,
       number,
     ];
     const v = vehiculos.get(id);
     if (!v || v.user_id !== userId) return { rows: [], rowCount: 0 };
-    const nuevaPlaca = placa ?? v.placa;
-    if ([...vehiculos.values()].some((x) => x.placa === nuevaPlaca && x.id !== id)) {
-      throw errorDuplicado();
+
+    if (setPlaca && placa !== null) {
+      if ([...vehiculos.values()].some((x) => x.placa === placa && x.id !== id)) {
+        throw errorDuplicado();
+      }
+      v.placa = placa;
     }
-    v.placa = nuevaPlaca;
-    v.marca = marca ?? v.marca;
-    v.modelo = modelo ?? v.modelo;
+    if (setMarca) v.marca = marca;
+    if (setModelo) v.modelo = modelo;
     return { rows: [v], rowCount: 1 };
   }
 
@@ -551,5 +556,45 @@ describe("CRUD de vehículos", () => {
     const ajeno = creados.find((v) => v.rol !== roles[0])!;
     const res = await request(app).get(`/vehicles/${ajeno.id}`).set("Authorization", `Bearer ${t0}`);
     assert.equal(res.status, 404);
+  });
+
+  test("25. PUT conserva los campos omitidos", async () => {
+    const t = authToken(1);
+    const creado = (
+      await request(app)
+        .post("/vehicles")
+        .set("Authorization", `Bearer ${t}`)
+        .send({ placa: "KEP-111", marca: "Original", modelo: "Original" })
+    ).body;
+
+    const res = await request(app)
+      .put(`/vehicles/${creado.id}`)
+      .set("Authorization", `Bearer ${t}`)
+      .send({ placa: "KEP-222" });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.placa, "KEP222");
+    assert.equal(res.body.marca, "Original"); // omitido -> se conserva
+    assert.equal(res.body.modelo, "Original"); // omitido -> se conserva
+  });
+
+  test("26. PUT permite limpiar marca y modelo con null", async () => {
+    const t = authToken(1);
+    const creado = (
+      await request(app)
+        .post("/vehicles")
+        .set("Authorization", `Bearer ${t}`)
+        .send({ placa: "CLR-111", marca: "Toyota", modelo: "Corolla" })
+    ).body;
+
+    const res = await request(app)
+      .put(`/vehicles/${creado.id}`)
+      .set("Authorization", `Bearer ${t}`)
+      .send({ marca: null, modelo: null });
+
+    assert.equal(res.status, 200);
+    assert.equal(res.body.marca, null);
+    assert.equal(res.body.modelo, null);
+    assert.equal(res.body.placa, "CLR111"); // placa omitida -> se conserva
   });
 });
