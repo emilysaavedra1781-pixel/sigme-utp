@@ -416,13 +416,15 @@ describe("CRUD de vehículos", () => {
     forzarError = false;
 
     assert.equal(res.status, 500);
-    assert.equal(res.body.error, "Error interno del servidor");
+    // La respuesta pública no debe incluir stack, SQL, mensaje interno ni secretos.
+    assert.deepEqual(res.body, { error: "Error interno del servidor" });
     assert.ok(!JSON.stringify(res.body).includes("detalle interno confidencial"));
     assert.ok(!JSON.stringify(res.body).includes("boom"));
 
     const errLog = errorLogs.find((o) => o?.event === "http.unhandled_error");
-    assert.ok(errLog, "debe emitir un log de error para el fallo inesperado");
+    assert.ok(errLog, "debe emitir un log de error (nivel error) para el fallo inesperado");
     assert.ok(typeof errLog.err?.stack === "string" && errLog.err.stack.length > 0, "el log debe incluir stack trace");
+    assert.ok(typeof errLog.err?.message === "string" && errLog.err.message.length > 0, "el log debe incluir el mensaje del error");
   });
 
   test("15. rechaza creación sin placa (campo obligatorio) con 400", async () => {

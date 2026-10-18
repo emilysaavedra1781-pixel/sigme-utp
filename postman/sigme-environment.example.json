@@ -1,0 +1,23 @@
+{
+  "id": "sigme-environment-example",
+  "name": "SIGME - Entorno de ejemplo",
+  "values": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "enabled": true },
+    { "key": "codigo_usuario", "value": "", "enabled": true },
+    { "key": "password_usuario", "value": "", "enabled": true },
+    { "key": "codigo_supervisor", "value": "", "enabled": true },
+    { "key": "password_supervisor", "value": "", "enabled": true },
+    { "key": "codigo_administrador", "value": "", "enabled": true },
+    { "key": "password_administrador", "value": "", "enabled": true },
+    { "key": "token_usuario", "value": "", "enabled": true },
+    { "key": "token_supervisor", "value": "", "enabled": true },
+    { "key": "token_administrador", "value": "", "enabled": true },
+    { "key": "vehiculo_id_usuario", "value": "", "enabled": true },
+    { "key": "vehiculo_id_supervisor", "value": "", "enabled": true },
+    { "key": "vehiculo_id_administrador", "value": "", "enabled": true },
+    { "key": "placa_usuario", "value": "PRU-111", "enabled": true },
+    { "key": "placa_supervisor", "value": "PRS-222", "enabled": true },
+    { "key": "placa_administrador", "value": "PRA-333", "enabled": true }
+  ],
+  "_postman_variable_scope": "environment"
+}

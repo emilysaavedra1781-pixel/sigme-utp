@@ -1,0 +1,271 @@
+{
+  "info": {
+    "name": "SIGME - Vehicles (issue #2)",
+    "description": "Verificación del CRUD de vehículos con los tres roles (usuario, supervisor, administrador). Requiere importar el entorno de ejemplo postman/sigme-environment.example.json y completar codigo_* y password_* con credenciales de prueba autorizadas (los tokens se obtienen en los requests de la carpeta Auth).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" }
+  ],
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login usuario",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('login 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('token presente', () => pm.expect(json.token).to.be.a('string'));",
+              "pm.environment.set('token_usuario', json.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\"codigo\": \"{{codigo_usuario}}\", \"password\": \"{{password_usuario}}\"}" },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login supervisor",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('login 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('token presente', () => pm.expect(json.token).to.be.a('string'));",
+              "pm.environment.set('token_supervisor', json.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\"codigo\": \"{{codigo_supervisor}}\", \"password\": \"{{password_supervisor}}\"}" },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        },
+        {
+          "name": "Login administrador",
+          "event": [
+            { "listen": "test", "script": { "type": "text/javascript", "exec": [
+              "pm.test('login 200', () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "pm.test('token presente', () => pm.expect(json.token).to.be.a('string'));",
+              "pm.environment.set('token_administrador', json.token);"
+            ] } }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Content-Type", "value": "application/json" } ],
+            "body": { "mode": "raw", "raw": "{\"codigo\": \"{{codigo_administrador}}\", \"password\": \"{{password_administrador}}\"}" },
+            "url": "{{baseUrl}}/auth/login"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vehículos",
+      "item": [
+        {
+          "name": "Crear vehículo (usuario)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('id presente', () => pm.expect(json.id).to.be.a('number'));",
+            "pm.environment.set('vehiculo_id_usuario', json.id);"
+          ] } } ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_usuario}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"placa\": \"{{placa_usuario}}\", \"marca\": \"Toyota\", \"modelo\": \"Corolla\"}" },
+            "url": "{{baseUrl}}/vehicles"
+          }
+        },
+        {
+          "name": "Crear vehículo (supervisor)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('id presente', () => pm.expect(json.id).to.be.a('number'));",
+            "pm.environment.set('vehiculo_id_supervisor', json.id);"
+          ] } } ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_supervisor}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"placa\": \"{{placa_supervisor}}\", \"marca\": \"Honda\", \"modelo\": \"Civic\"}" },
+            "url": "{{baseUrl}}/vehicles"
+          }
+        },
+        {
+          "name": "Crear vehículo (administrador)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('201', () => pm.response.to.have.status(201));",
+            "const json = pm.response.json();",
+            "pm.test('id presente', () => pm.expect(json.id).to.be.a('number'));",
+            "pm.environment.set('vehiculo_id_administrador', json.id);"
+          ] } } ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_administrador}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"placa\": \"{{placa_administrador}}\", \"marca\": \"Kia\", \"modelo\": \"Sportage\"}" },
+            "url": "{{baseUrl}}/vehicles"
+          }
+        },
+        {
+          "name": "Placa duplicada (409)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('409', () => pm.response.to.have.status(409));",
+            "pm.test('mensaje de placa', () => pm.expect(pm.response.json().error).to.include('placa'));"
+          ] } } ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_usuario}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"placa\": \"{{placa_usuario}}\"}" },
+            "url": "{{baseUrl}}/vehicles"
+          }
+        },
+        {
+          "name": "Placa inválida (400)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('400', () => pm.response.to.have.status(400));" ] } } ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_usuario}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"placa\": \"123\"}" },
+            "url": "{{baseUrl}}/vehicles"
+          }
+        },
+        {
+          "name": "Listar propios (usuario)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('200', () => pm.response.to.have.status(200));",
+            "pm.test('es arreglo', () => pm.expect(pm.response.json()).to.be.an('array'));"
+          ] } } ],
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token_usuario}}" } ],
+            "url": "{{baseUrl}}/vehicles"
+          }
+        },
+        {
+          "name": "Obtener propio (usuario)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('200', () => pm.response.to.have.status(200));" ] } } ],
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token_usuario}}" } ],
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_usuario}}"
+          }
+        },
+        {
+          "name": "Obtener ajeno (usuario → supervisor)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404', () => pm.response.to.have.status(404));" ] } } ],
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token_usuario}}" } ],
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_supervisor}}"
+          }
+        },
+        {
+          "name": "Actualizar propio (usuario)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('200', () => pm.response.to.have.status(200));" ] } } ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_usuario}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"marca\": \"Ford\", \"modelo\": \"Fiesta\"}" },
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_usuario}}"
+          }
+        },
+        {
+          "name": "Actualizar ajeno (usuario → supervisor)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404', () => pm.response.to.have.status(404));" ] } } ],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token_usuario}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\"marca\": \"Hack\"}" },
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_supervisor}}"
+          }
+        },
+        {
+          "name": "Eliminar ajeno (usuario → supervisor)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('404', () => pm.response.to.have.status(404));" ] } } ],
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token_usuario}}" } ],
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_supervisor}}"
+          }
+        },
+        {
+          "name": "Sin token (401)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('401', () => pm.response.to.have.status(401));" ] } } ],
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/vehicles"
+          }
+        },
+        {
+          "name": "Token inválido (401)",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('401', () => pm.response.to.have.status(401));" ] } } ],
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer token-invalido" } ],
+            "url": "{{baseUrl}}/vehicles"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Limpieza",
+      "description": "Elimina únicamente los vehículos de prueba creados por esta colección (no borra datos ajenos).",
+      "item": [
+        {
+          "name": "Eliminar vehículo usuario",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('200', () => pm.response.to.have.status(200));" ] } } ],
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token_usuario}}" } ],
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_usuario}}"
+          }
+        },
+        {
+          "name": "Eliminar vehículo supervisor",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('200', () => pm.response.to.have.status(200));" ] } } ],
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token_supervisor}}" } ],
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_supervisor}}"
+          }
+        },
+        {
+          "name": "Eliminar vehículo administrador",
+          "event": [ { "listen": "test", "script": { "type": "text/javascript", "exec": [ "pm.test('200', () => pm.response.to.have.status(200));" ] } } ],
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token_administrador}}" } ],
+            "url": "{{baseUrl}}/vehicles/{{vehiculo_id_administrador}}"
+          }
+        }
+      ]
+    }
+  ]
+}
