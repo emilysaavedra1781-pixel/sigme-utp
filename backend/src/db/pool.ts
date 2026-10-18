@@ -5,6 +5,7 @@ import { logger } from "../config/logger";
 export const pool = new Pool({
   connectionString: env.DATABASE_URL,
   max: 10,
+  ssl: env.NODE_ENV === "production" ? { rejectUnauthorized: false } : undefined,
 });
 
 pool.on("connect", () => {
