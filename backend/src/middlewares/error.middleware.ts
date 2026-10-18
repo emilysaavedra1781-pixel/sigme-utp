@@ -14,9 +14,18 @@ export function errorMiddleware(
     return res.status(err.status).json({ error: err.message });
   }
 
-  // Violación de unicidad en PostgreSQL (código o correo repetido)
+  // Violación de unicidad en PostgreSQL
   if (typeof err === "object" && err !== null && (err as { code?: string }).code === "23505") {
-    logger.warn({ event: "db.unique_violation" }, "Registro duplicado");
+    const constraint = (err as { constraint?: string }).constraint;
+
+    // Placa de vehículo duplicada (restricción vehicles_placa_key)
+    if (constraint === "vehicles_placa_key") {
+      logger.warn({ event: "db.unique_violation", constraint }, "Placa duplicada");
+      return res.status(409).json({ error: "La placa ya está registrada" });
+    }
+
+    // Resto de unicidades (código o correo de usuario)
+    logger.warn({ event: "db.unique_violation", constraint }, "Registro duplicado");
     return res.status(409).json({ error: "El código o correo ya existe" });
   }
 
