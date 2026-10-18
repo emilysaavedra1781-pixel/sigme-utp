@@ -111,7 +111,7 @@ Si cambias una ruta o un campo de respuesta, avisa al otro equipo.
 | auth | `POST /auth/logout` | logueado | listo |
 | users | `GET/PUT /users/me` | usuario | pendiente |
 | users | `GET /users`, `PATCH /users/:id/estado` | administrador | pendiente |
-| vehicles | CRUD `/vehicles` (propios) | usuario | pendiente |
+| vehicles | CRUD `/vehicles` (propios) | logueado (propietario) | listo |
 | parking | `GET /parking/lots`, `/spots` | logueado | pendiente |
 | parking | crear/editar lotes y plazas | administrador | pendiente |
 | parking | `POST /parking/sensors/report` | ESP32 (API key) | pendiente |
@@ -119,6 +119,23 @@ Si cambias una ruta o un campo de respuesta, avisa al otro equipo.
 | access | `POST /access/manual`, `GET /access/historial` | supervisor, administrador | pendiente |
 | notifications | `GET /notifications`, `PATCH /:id/leida` | usuario | pendiente |
 | admin | `GET /admin/logs`, CRUD `/faqs` | administrador | pendiente |
+
+### Módulo `vehicles` (implementado)
+
+| Método | Ruta | Auth | Descripción |
+|---|---|---|---|
+| `POST` | `/vehicles` | Bearer (cualquier rol) | Crear vehículo propio. Body: `placa` (obligatoria), `marca` (opcional), `modelo` (opcional). → 201 / 400 / 409 |
+| `GET` | `/vehicles` | Bearer | Listar solo los vehículos propios. → 200 (arreglo; vacío si no hay) |
+| `GET` | `/vehicles/:id` | Bearer | Obtener un vehículo propio. → 200 / 400 / 404 |
+| `PUT` | `/vehicles/:id` | Bearer | Actualizar `placa`/`marca`/`modelo` (al menos un campo). → 200 / 400 / 404 / 409 |
+| `DELETE` | `/vehicles/:id` | Bearer | Eliminar un vehículo propio. → 200 / 400 / 404 |
+
+- **Placas:** formato alineado con la app móvil (`/^[A-Z0-9]{3}-?[A-Z0-9]{3,4}$/i`), normalizadas a mayúsculas sin guion. Placa duplicada → `409`.
+- **Actualización parcial:** los campos omitidos se conservan; `marca` y `modelo` admiten `null` (o cadena vacía) para limpiar el valor.
+- **Autorización:** el propietario se obtiene del JWT (`req.user.id`); un usuario nunca ve/modifica/elimina vehículos ajenos (se responde `404` para no revelar su existencia). Los tres roles (`usuario`, `supervisor`, `administrador`) gestionan solo sus propios vehículos.
+- **Auditoría:** crear, actualizar y eliminar registran en `audit_log` (best-effort; `accion = vehicles.create|update|delete`, `elemento = vehicles:<id>`).
+- **Logs:** `info` en operaciones exitosas, `warn` en accesos ajenos, `error` en fallos inesperados.
+- **Pruebas:** `backend/test/vehicles.test.ts` usa `node:test` con `pool.query` mockeado (base en memoria) y **no** toca Supabase. La verificación real contra Supabase y los roles `supervisor`/`administrador` queda como verificación manual pendiente (requiere credenciales de prueba autorizadas).
 
 ---
 
@@ -130,6 +147,9 @@ cd backend
 npm install
 # crear .env (ver abajo)
 npm run dev          # http://localhost:3000/health
+npm test             # 29 pruebas unitarias/HTTP con pool mockeado (node:test)
+npm run typecheck    # comprobación de tipos de src y test
+npm run build        # compila TypeScript
 ```
 
 `.env` del backend:
@@ -171,6 +191,7 @@ npx expo start -c
 ### Hecho
 - [x] Backend: estructura completa, config, logger con `traceId`, pool
 - [x] Backend: módulo `auth` (registro, login, logout con revocación), middlewares y auditoría
+- [x] Backend: módulo `vehicles` (CRUD con autorización por propietario, auditoría, logs y 29 tests con `node:test`)
 - [x] App: login conectado, token en `expo-secure-store`
 - [x] App: 3 pantallas de registro con validaciones locales, menú, notificaciones, historial
 
@@ -178,10 +199,10 @@ npx expo start -c
 1. [ ] Probar `auth` (`npx tsc --noEmit`, `npm run dev`, Postman)
 2. [ ] Ejecutar `001_init.sql` en Supabase y activar RLS
 3. [ ] Crear usuarios de prueba (usuario, supervisor, administrador)
-4. [ ] Módulos: vehicles, parking, reservations (transacción con `FOR UPDATE`), access, notifications, admin, users
+4. [ ] Módulos: parking, reservations (transacción con `FOR UPDATE`), access, notifications, admin, users
 5. [ ] WebSocket para plazas en tiempo real
 6. [ ] Validación de entrada en los `*.schema.ts`
-7. [ ] Pruebas por rol (Supertest/Jest)
+7. [ ] Pruebas de los demás módulos (vehicles ya cubierto con `node:test`, 29 tests incluyendo los 3 roles)
 8. [ ] Dockerfile y `.env.example`
 9. [ ] Desplegar en Render y retirar `auth-service` y `api-gateway`
 

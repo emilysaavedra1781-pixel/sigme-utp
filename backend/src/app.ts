@@ -7,6 +7,7 @@ import { errorMiddleware } from "./middlewares/error.middleware";
 import { authRoutes } from "./modules/auth/auth.routes";
 import { validarToken } from "./middlewares/auth.middleware";
 import { usersRoutes } from "./modules/users/users.routes";
+import { vehiclesRoutes } from "./modules/vehicles/vehicles.routes";
 export const app = express();
 
 app.use(traceMiddleware);
@@ -23,7 +24,8 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/auth", authRoutes);
-app.use("/users", validarToken, usersRoutes); 
+app.use("/users", validarToken, usersRoutes);
+app.use("/vehicles", validarToken, vehiclesRoutes);
 
 // Siempre al final
 app.use(errorMiddleware);
